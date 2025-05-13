@@ -154,12 +154,10 @@ int DAQP::update(Eigen::MatrixXd& H,
     int *sense_ptr = sense.size() == 0 ? nullptr : sense.data();
     int *bp_ptr    = break_points.size() == 0 ? nullptr : break_points.data();
 
-    //
-    int resize_status = resize_result(n,m,break_points);
+    int resize_status = resize_result(n, m, break_points);
     assert(resize_status == 0);
 
-    DAQPProblem qp = {n, m, ms, H_ptr, f_ptr, A_ptr, bu.data(), bl.data(), sense_ptr, bp_ptr, n_tasks};
-    qp_ = qp; // To remember the qp
+    qp_ = DAQPProblem {n, m, ms, H_ptr, f_ptr, A_ptr, bu.data(), bl.data(), sense_ptr, bp_ptr, n_tasks};
 
     if(update_mask < 0){
         // Assume that everythig should be updated
