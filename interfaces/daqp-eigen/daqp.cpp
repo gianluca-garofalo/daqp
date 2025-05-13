@@ -88,17 +88,19 @@ EigenDAQPResult daqp_solve(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
 DAQP::DAQP(int max_variables, int max_constraints, int max_constraints_in_level)
   : max_variables_{max_variables}
   , max_constraints_{max_constraints}
-  , max_constraints_in_level_{max_constraints_in_level} {
-    allocate_daqp_workspace(&work_, max_variables, max_constraints_in_level);
-    allocate_daqp_ldp(&work_, max_variables, max_constraints, 0, 0, 0);
-    daqp_default_settings(&settings_);
-    work_.settings = &settings_;
+  , max_constraints_in_level_{max_constraints_in_level}
+  , work_{(DAQPWorkspace*) std::malloc(sizeof(DAQPWorkspace))}
+  , settings_{(DAQPSettings*) std::malloc(sizeof(DAQPSettings))} {
+    allocate_daqp_workspace(work_, max_variables, max_constraints_in_level);
+    allocate_daqp_ldp(work_, max_variables, max_constraints, 0, 0, 0);
+    daqp_default_settings(settings_);
+    work_->settings = settings_;
 }
 
-DAQP::~DAQP(){
-    work_.settings = nullptr;
-    free_daqp_workspace(&work_);
-    free_daqp_ldp(&work_);
+DAQP::~DAQP() {
+    free_daqp_workspace(work_);
+    free_daqp_ldp(work_);
+    std::free(work_);
 }
 
 int DAQP::resize_result(const int n, const int m, Eigen::VectorXi& break_points){
@@ -119,10 +121,10 @@ int DAQP::resize_result(const int n, const int m, Eigen::VectorXi& break_points)
         result_.resize_primal(n);
         result_.resize_dual(m);
     }
-    if (n != work_.n) {
+    if (n != work_->n) {
         result_.resize_primal(n);
     }
-    if (m != work_.m) {
+    if (m != work_->m) {
         result_.resize_dual(m);
     }
     return 0;
@@ -164,12 +166,12 @@ int DAQP::update(Eigen::MatrixXd& H,
         update_mask = UPDATE_Rinv + UPDATE_M + UPDATE_v + UPDATE_d + UPDATE_sense + UPDATE_hierarchy;
     }
 
-    return update_ldp(update_mask, &work_, &qp_);
+    return update_ldp(update_mask, work_, &qp_);
 }
 
 // Solve the LDP that is in the workspace
-const EigenDAQPResult& DAQP::solve(){
-    daqp_solve(&result_,&work_);
+const EigenDAQPResult& DAQP::solve() {
+    daqp_solve(&result_, work_);
     return result_;
 }
 
@@ -186,21 +188,21 @@ const EigenDAQPResult& DAQP::solve(Eigen::Matrix<double, Eigen::Dynamic, Eigen::
     return solve();
 }
 
-void DAQP::set_primal_tol(double val)  { settings_.primal_tol = val;}
-void DAQP::set_dual_tol(double val)    { settings_.dual_tol = val;}
-void DAQP::set_zero_tol(double val)    { settings_.zero_tol = val;}
-void DAQP::set_pivot_tol(double val)   { settings_.pivot_tol = val;}
-void DAQP::set_progress_tol(double val){ settings_.progress_tol = val;}
-void DAQP::set_cycle_tol(int val)      { settings_.cycle_tol = val;}
-void DAQP::set_iter_limit(int val)     { settings_.iter_limit = val;}
-void DAQP::set_fval_bound(double val)  { settings_.fval_bound = val;}
-void DAQP::set_eps_prox(double val)    { settings_.eps_prox = val;}
-void DAQP::set_eta_prox(double val)    { settings_.eta_prox = val;}
-void DAQP::set_rho_soft(double val)    { settings_.rho_soft = val;}
-void DAQP::set_rel_subopt(double val)  { settings_.rel_subopt = val;}
-void DAQP::set_abs_subopt(double val)  { settings_.abs_subopt = val;}
-void DAQP::set_sing_tol(double val)  { settings_.sing_tol = val;}
-void DAQP::set_refactor_tol(double val)  { settings_.refactor_tol = val;}
+void DAQP::set_primal_tol(double val)  { settings_->primal_tol = val;}
+void DAQP::set_dual_tol(double val)    { settings_->dual_tol = val;}
+void DAQP::set_zero_tol(double val)    { settings_->zero_tol = val;}
+void DAQP::set_pivot_tol(double val)   { settings_->pivot_tol = val;}
+void DAQP::set_progress_tol(double val){ settings_->progress_tol = val;}
+void DAQP::set_cycle_tol(int val)      { settings_->cycle_tol = val;}
+void DAQP::set_iter_limit(int val)     { settings_->iter_limit = val;}
+void DAQP::set_fval_bound(double val)  { settings_->fval_bound = val;}
+void DAQP::set_eps_prox(double val)    { settings_->eps_prox = val;}
+void DAQP::set_eta_prox(double val)    { settings_->eta_prox = val;}
+void DAQP::set_rho_soft(double val)    { settings_->rho_soft = val;}
+void DAQP::set_rel_subopt(double val)  { settings_->rel_subopt = val;}
+void DAQP::set_abs_subopt(double val)  { settings_->abs_subopt = val;}
+void DAQP::set_sing_tol(double val)  { settings_->sing_tol = val;}
+void DAQP::set_refactor_tol(double val)  { settings_->refactor_tol = val;}
 
 Eigen::VectorXd DAQP::get_primal() {return result_.get_primal();}
 Eigen::VectorXd DAQP::get_dual()   {return result_.get_dual();}

@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include "api.h"
+#include <cstdlib>
 
 
 class EigenDAQPResult : public DAQPResult {
@@ -49,8 +50,8 @@ class DAQP {
     int max_variables_;
     int max_constraints_;
     int max_constraints_in_level_;
-    DAQPWorkspace work_;
-    DAQPSettings settings_;
+    DAQPWorkspace* work_;
+    DAQPSettings* settings_;
     EigenDAQPResult result_;
     DAQPProblem qp_;
     int resize_result(const int n, const int m, Eigen::VectorXi& break_points);
