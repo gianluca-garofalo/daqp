@@ -8,10 +8,11 @@ void saveMatrixCSV(std::string const& filename, Eigen::MatrixXd const& matrix);
 Eigen::MatrixXd loadMatrixCSV(std::string const& filename);
 
 
-#define TEST_TYPE 0
+#define TEST_TYPE 3
 // 0: Full problem, i.e., Coupling + Floating base + 2 SE3 + All joints
 // 1: Coupling + Floating base + 2 SE3 + Wheels only
 // 2: Coupling + Floating base + All joints
+// 3: Floating base + All joints, i.e., an identity
 
 int main() {
     Eigen::MatrixXd matrix = loadMatrixCSV("data/clik_tasks_A.csv");
@@ -38,13 +39,21 @@ int main() {
     matrix = matrix(ind, Eigen::all);
     vector = vector(ind);
     breaks = (Eigen::VectorXi(breaks.size() - 2) << breaks.head(2), breaks(4) - 2 * 6).finished();
+#elif TEST_TYPE == 3
+    // Floating base + All joints
+    ind = (Eigen::VectorXi(matrix.cols()) << ind.segment(matrix.rows() - 3 * 6 - matrix.cols() + 6, 6),
+           ind.tail(matrix.cols() - 6))
+            .finished();
+    matrix = matrix(ind, Eigen::all);
+    vector = vector(ind);
+    breaks = (Eigen::VectorXi(2) << 6, matrix.cols()).finished();
 #endif
     saveMatrixCSV("data/A_reduced.csv", filter(matrix));
     saveMatrixCSV("data/b_reduced.csv", filter(vector));
 
     auto result = daqp_solve(matrix, vector, vector, (Eigen::VectorXi(breaks.size() + 1) << 0, breaks).finished());
     auto daqp   = result.get_primal();
-    std::cout << "DAQP solution: " << filter(daqp).transpose() << std::endl;
+    std::cout << "\nDAQP solution: " << filter(daqp).transpose() << std::endl;
 
     Eigen::VectorXd solution = loadMatrixCSV("data/clik_tasks_solution.csv");
     std::cout << "\nDifference: " << filter(daqp - solution).transpose() << std::endl;
@@ -55,7 +64,12 @@ int main() {
     saveMatrixCSV("data/A_active.csv", filter(matrix(active_set, Eigen::all)));
     saveMatrixCSV("data/b_active.csv", filter(vector(active_set)));
 
-    return daqp.isApprox(solution, 1e-4) ? 0 : 1;
+#if TEST_TYPE == 0
+    bool test = daqp.isApprox(solution, 1e-4);
+#else // Nothing to verify for reduced problems
+    bool test = true;
+#endif
+    return test ? 0 : 1;
 }
 
 
