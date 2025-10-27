@@ -1,0 +1,114 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 22
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
+                "EIGEN": "ON",
+                "TEST": "ON"
+            }
+        },
+        {
+            "name": "release",
+            "inherits": "default",
+            "description": "Release build with optimizations",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "debug",
+            "inherits": "default",
+            "description": "Debug build with debug symbols",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "python-release",
+            "inherits": "default",
+            "description": "Release build with Python bindings enabled",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_PYTHON_BINDINGS": "ON",
+                "BUILD_TESTING": "OFF"
+            }
+        },
+        {
+            "name": "python-debug",
+            "inherits": "default",
+            "description": "Debug build with Python bindings enabled",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_PYTHON_BINDINGS": "ON",
+                "BUILD_TESTING": "OFF"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "configurePreset": "release",
+            "configuration": "Release"
+        },
+        {
+            "name": "debug",
+            "configurePreset": "debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release",
+            "configuration": "Release"
+        },
+        {
+            "name": "python-release",
+            "configurePreset": "python-release",
+            "configuration": "Release",
+            "targets": ["pyhqp"]
+        },
+        {
+            "name": "python-debug",
+            "configurePreset": "python-debug",
+            "configuration": "Debug",
+            "targets": ["pyhqp"]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "configurePreset": "release",
+            "configuration": "Release"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release",
+            "configuration": "Release"
+        },
+        {
+            "name": "debug",
+            "configurePreset": "debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "python-release",
+            "configurePreset": "python-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "python-debug",
+            "configurePreset": "python-debug",
+            "configuration": "Debug"
+        }
+    ]
+}

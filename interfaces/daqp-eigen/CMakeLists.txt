@@ -4,6 +4,8 @@ find_package(Eigen3 3.4.0 REQUIRED NO_MODULE)
 
 include(GNUInstallDirs)
 
+add_subdirectory(csv)
+
 add_library(${PROJECT_NAME} SHARED daqp.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
